@@ -99,15 +99,19 @@ class FormExtractorTest extends \PHPUnit_Framework_TestCase
         $expected->add($message);
 
         $message = new Message('form.dueDate.empty.year');
-        $message->addSource(new FileSource($path, 72));
+        $message->addSource(new FileSource($path, 73));
         $expected->add($message);
 
         $message = new Message('form.dueDate.empty.month');
-        $message->addSource(new FileSource($path, 72));
+        $message->addSource(new FileSource($path, 73));
         $expected->add($message);
 
         $message = new Message('form.dueDate.empty.day');
-        $message->addSource(new FileSource($path, 72));
+        $message->addSource(new FileSource($path, 73));
+        $expected->add($message);
+
+        $message = new Message('bar', 'choice-domain');
+        $message->addSource(new FileSource($path, 76));
         $expected->add($message);
 
         $this->assertEquals($expected, $this->extract('MyFormType.php'));

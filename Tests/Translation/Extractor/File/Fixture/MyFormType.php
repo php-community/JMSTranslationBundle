@@ -68,8 +68,14 @@ class MyFormType extends AbstractType
                   'label' => 'form.label.created'
               ))
         ;
-        $builder->add('dueDate','date', array(
+        $builder
+            ->add('dueDate','date', array(
                 'empty_value' => array('year' => 'form.dueDate.empty.year', 'month' => 'form.dueDate.empty.month', 'day'=>'form.dueDate.empty.day')
-        ));
+            ))
+            ->add('choices_with_translation_domain', 'choice', array(
+                'choices' => array('foo' => 'bar'),
+                'choice_translation_domain' => 'choice-domain'
+            ))
+        ;
     }
 }
