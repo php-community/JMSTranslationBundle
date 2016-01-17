@@ -127,6 +127,10 @@ class FormExtractorTest extends \PHPUnit_Framework_TestCase
         $message->addSource(new FileSource($path, 69));
         $expected->add($message);
 
+        $message = new Message('bar', 'choice-domain');
+        $message->addSource(new FileSource($path, 84));
+        $expected->add($message);
+
         $this->assertEquals($expected, $this->extract('MyFormType.php'));
     }
 
