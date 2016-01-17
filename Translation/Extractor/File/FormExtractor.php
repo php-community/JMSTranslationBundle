@@ -41,7 +41,7 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
      * @var FileSourceFactory
      */
     private $fileSourceFactory;
-    
+
     /**
      * @var DocParser
      */
@@ -117,6 +117,10 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
         if ($node instanceof Node\Expr\Array_) {
             // first check if a translation_domain is set for this field
             $domain = $this->getDomain($node);
+            $choiceDomain = $this->getChoiceDomain($node);
+            if ($choiceDomain === null) {
+                $choiceDomain = $domain;
+            }
 
             // look for options containing a message
             foreach ($node->items as $item) {
@@ -139,7 +143,7 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
                         $this->parseItem($item, $domain);
                         break;
                     case 'choices':
-                        if ($this->parseChoiceNode($item, $node, $domain)) {
+                        if ($this->parseChoiceNode($item, $node, $choiceDomain)) {
                             continue 2;
                         }
                         $this->parseItem($item, $domain);
@@ -161,6 +165,20 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
      */
     public function getDomain(Node $node)
     {
+        return $this->getDomainValueForKey('translation_domain', $node);
+    }
+
+    /**
+     * @param Node $node
+     * @return null|string
+     */
+    public function getChoiceDomain(Node $node)
+    {
+        return $this->getDomainValueForKey('choice_translation_domain', $node);
+    }
+
+    private function getDomainValueForKey($key, Node $node)
+    {
         $domain = null;
 
         foreach ($node->items as $item) {
@@ -168,7 +186,11 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
                 continue;
             }
 
-            if ('translation_domain' === $item->key->value) {
+            if ($key === $item->key->value) {
+                if ($item->value instanceof Node\Expr\ConstFetch && $item->value->name->parts[0] === 'false') {
+                    $domain = false;
+                    break;
+                }
                 if (!$item->value instanceof Node\Scalar\String_) {
                     continue;
                 }
@@ -211,7 +233,7 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
     }
 
     /**
-     * This parses any Node of type choices. 
+     * This parses any Node of type choices.
      *
      * Returning true means either that regardless of whether
      * parsing has occurred or not, the enterNode function should move on to the next node item.
@@ -253,7 +275,7 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
     }
 
     /**
-     * This parses any Node of type attr 
+     * This parses any Node of type attr
      *
      * Returning true means either that regardless of whether
      * parsing has occurred or not, the enterNode function should move on to the next node item.
@@ -393,6 +415,11 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
             }
 
             throw new RuntimeException($message);
+        }
+
+        if ($domain === false) {
+            // Don't translate when domain is `false`
+            return;
         }
 
         $source = $this->fileSourceFactory->create($this->file, $item->value->getLine());
