@@ -18,16 +18,17 @@
 
 namespace JMS\TranslationBundle\Translation\Extractor\File;
 
-use JMS\TranslationBundle\Exception\RuntimeException;
-use JMS\TranslationBundle\Model\FileSource;
-use JMS\TranslationBundle\Model\Message;
-use JMS\TranslationBundle\Annotation\Meaning;
+use Doctrine\Common\Annotations\DocParser;
 use JMS\TranslationBundle\Annotation\Desc;
 use JMS\TranslationBundle\Annotation\Ignore;
-use Doctrine\Common\Annotations\DocParser;
-use JMS\TranslationBundle\Model\MessageCatalogue;
-use JMS\TranslationBundle\Translation\Extractor\FileVisitorInterface;
+use JMS\TranslationBundle\Annotation\Meaning;
+use JMS\TranslationBundle\Exception\RuntimeException;
 use JMS\TranslationBundle\Logger\LoggerAwareInterface;
+use JMS\TranslationBundle\Model\FileSource;
+use JMS\TranslationBundle\Model\Message;
+use JMS\TranslationBundle\Model\MessageCatalogue;
+use JMS\TranslationBundle\Model\SourceInterface;
+use JMS\TranslationBundle\Translation\Extractor\FileVisitorInterface;
 use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\NodeTraverser;
@@ -68,7 +69,7 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
     private $defaultDomain;
 
     /**
-     * @var string
+     * @var array
      */
     private $defaultDomainMessages;
 
@@ -103,6 +104,7 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
             $name = strtolower($node->name);
             if ('setdefaults' === $name || 'replacedefaults' === $name) {
                 $this->parseDefaultsCall($node);
+
                 return;
             }
         }
@@ -131,7 +133,8 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
                 }
 
                 if ('empty_value' === $item->key->value && $item->value instanceof Node\Expr\ConstFetch
-                    && $item->value->name instanceof Node\Name && 'false' === $item->value->name->parts[0]) {
+                    && $item->value->name instanceof Node\Name && 'false' === $item->value->name->parts[0]
+                    && 'false' === $item->value->name->parts[0]) {
                     continue;
                 }
                 if ('empty_value' === $item->key->value && $item->value instanceof Node\Expr\Array_) {
@@ -193,11 +196,17 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
      */
     private function parseDefaultsCall(Node $node)
     {
-        static $returningMethods = array(
-            'setdefaults' => true, 'replacedefaults' => true, 'setoptional' => true, 'setrequired' => true,
-            'setallowedvalues' => true, 'addallowedvalues' => true, 'setallowedtypes' => true,
-            'addallowedtypes' => true, 'setfilters' => true
-        );
+        static $returningMethods = [
+            'setdefaults' => true,
+            'replacedefaults' => true,
+            'setoptional' => true,
+            'setrequired' => true,
+            'setallowedvalues' => true,
+            'addallowedvalues' => true,
+            'setallowedtypes' => true,
+            'addallowedtypes' => true,
+            'setfilters' => true,
+        ];
 
         $var = $node->var;
         while ($var instanceof Node\Expr\MethodCall) {
@@ -263,7 +272,12 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
             if ($docComment instanceof Doc) {
                 $docComment = $docComment->getText();
             }
-            foreach ($this->docParser->parse($docComment, 'file '.$this->file.' near line '.$item->value->getLine()) as $annot) {
+            foreach (
+                $this->docParser->parse(
+                    $docComment,
+                    'file ' . $this->file . ' near line ' . $item->value->getLine()
+                ) as $annot
+            ) {
                 if ($annot instanceof Ignore) {
                     $ignore = true;
                 } elseif ($annot instanceof Desc) {
@@ -282,7 +296,12 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
                 return;
             }
 
-            $message = sprintf('Unable to extract translation id for form label/title/placeholder from non-string values, but got "%s" in %s on line %d. Please refactor your code to pass a string, or add "/** @Ignore */".', get_class($item->value), $this->file, $item->value->getLine());
+            $message = sprintf(
+                'Unable to extract translation id for form label/title/placeholder from non-string values, but got "%s" in %s on line %d. Please refactor your code to pass a string, or add "/** @Ignore */".',
+                get_class($item->value),
+                $this->file,
+                $item->value->getLine()
+            );
             if ($this->logger) {
                 $this->logger->error($message);
 
@@ -300,7 +319,7 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
                 'id' => $id,
                 'source' => $source,
                 'desc' => $desc,
-                'meaning' => $meaning
+                'meaning' => $meaning,
             );
         } else {
             $this->addToCatalogue($id, $source, $domain, $desc, $meaning);
@@ -309,7 +328,7 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
 
     /**
      * @param string $id
-     * @param string $source
+     * @param SourceInterface $source
      * @param null|string $domain
      * @param null|string $desc
      * @param null|string $meaning
@@ -348,7 +367,13 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
 
         if ($this->defaultDomainMessages) {
             foreach ($this->defaultDomainMessages as $message) {
-                $this->addToCatalogue($message['id'], $message['source'], $this->defaultDomain, $message['desc'], $message['meaning']);
+                $this->addToCatalogue(
+                    $message['id'],
+                    $message['source'],
+                    $this->defaultDomain,
+                    $message['desc'],
+                    $message['meaning']
+                );
             }
         }
     }
