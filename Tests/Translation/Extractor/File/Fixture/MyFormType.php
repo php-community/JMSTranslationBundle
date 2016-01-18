@@ -76,6 +76,14 @@ class MyFormType extends AbstractType
                 'choices' => array('foo' => 'bar'),
                 'choice_translation_domain' => 'choice-domain'
             ))
+            ->add('choices_without_translation', 'choice', array(
+                'choices' => array('foo' => 'bar'),
+                'choice_translation_domain' => false,
+            ))
+            ->add('untranslatable_label', 'text', array(
+                'label' => 'bar',
+                'translation_domain' => false,
+            ))
         ;
     }
 }

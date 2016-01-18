@@ -70,17 +70,30 @@ class FormExtractor implements FileVisitorInterface, \PHPParser_NodeVisitor
         if ($node instanceof \PHPParser_Node_Expr_Array) {
             // first check if a translation_domain is set for this field
             $domain = null;
+            $choiceDomain = null;
             foreach ($node->items as $item) {
                 if (!$item->key instanceof \PHPParser_Node_Scalar_String) {
                     continue;
                 }
 
                 if ('translation_domain' === $item->key->value) {
-                    if (!$item->value instanceof \PHPParser_Node_Scalar_String) {
-                        continue;
+                    if ($item->value instanceof \PHPParser_Node_Scalar_String) {
+                        $domain = $item->value->value;
+                    } elseif ($item->value instanceof \PHPParser_Node_Expr_ConstFetch) {
+                        $constant = (string) $item->value->name;
+                        if ($constant === 'false') {
+                            $domain = false;
+                        }
                     }
-
-                    $domain = $item->value->value;
+                } elseif ('choice_translation_domain' === $item->key->value) {
+                    if ($item->value instanceof \PHPParser_Node_Scalar_String) {
+                        $choiceDomain = $item->value->value;
+                    } elseif ($item->value instanceof \PHPParser_Node_Expr_ConstFetch) {
+                        $constant = (string) $item->value->name;
+                        if ($constant === 'false') {
+                            $choiceDomain = false;
+                        }
+                    }
                 }
             }
 
@@ -118,7 +131,7 @@ class FormExtractor implements FileVisitorInterface, \PHPParser_NodeVisitor
 
                 if ('choices' === $item->key->value) {
                     foreach ($item->value->items as $sitem) {
-                        $this->parseItem($sitem, $domain);
+                        $this->parseItem($sitem, $choiceDomain !== null ? $choiceDomain : $domain);
                     }
                 } elseif ('attr' === $item->key->value && is_array($item->value->items)) {
                     foreach ($item->value->items as $sitem) {
@@ -253,6 +266,11 @@ class FormExtractor implements FileVisitorInterface, \PHPParser_NodeVisitor
             }
 
             throw new RuntimeException($message);
+        }
+
+        if ($domain === false) {
+            // Don't translate when domain is `false`
+            return;
         }
 
         $source = new FileSource((string) $this->file, $item->value->getLine());

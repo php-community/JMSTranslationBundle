@@ -23,11 +23,9 @@ use Doctrine\Common\Annotations\DocParser;
 use JMS\TranslationBundle\Translation\Extractor\File\FormExtractor;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\Validator\Mapping\Loader\AnnotationLoader;
-use Symfony\Component\Validator\Mapping\ClassMetadataFactory;
 use JMS\TranslationBundle\Translation\Extractor\File\ValidationExtractor;
 use JMS\TranslationBundle\Model\FileSource;
 use JMS\TranslationBundle\Model\Message;
-use JMS\TranslationBundle\Model\MessageCatalogue;
 use JMS\TranslationBundle\Translation\Extractor\File\TwigFileExtractor;
 use JMS\TranslationBundle\Translation\Extractor\File\TranslationContainerExtractor;
 use JMS\TranslationBundle\Translation\Extractor\File\DefaultPhpFileExtractor;
@@ -77,7 +75,7 @@ class FileExtractorTest extends \PHPUnit_Framework_TestCase
             $expected[$engine.'.foo_bar'] = $message;
         }
 
-        $actual = $this->extract(__DIR__.'/Fixture/SimpleTest/')->getDomain('messages')->all();
+        $actual = $this->extract(__DIR__.'/Fixture/SimpleTest')->getDomain('messages')->all();
 
         asort($expected);
         asort($actual);
