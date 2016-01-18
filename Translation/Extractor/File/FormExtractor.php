@@ -112,17 +112,30 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
         if ($node instanceof Node\Expr\Array_) {
             // first check if a translation_domain is set for this field
             $domain = null;
+            $choiceDomain = null;
             foreach ($node->items as $item) {
                 if (!$item->key instanceof Node\Scalar\String_) {
                     continue;
                 }
 
                 if ('translation_domain' === $item->key->value) {
-                    if (!$item->value instanceof Node\Scalar\String_) {
-                        continue;
+                    if ($item->value instanceof Node\Scalar\String_) {
+                        $domain = $item->value->value;
+                    } elseif ($item->value instanceof Node\Expr\ConstFetch) {
+                        $constant = (string) $item->value->name;
+                        if ($constant === 'false') {
+                            $domain = false;
+                        }
                     }
-
-                    $domain = $item->value->value;
+                } elseif ('choice_translation_domain' === $item->key->value) {
+                    if ($item->value instanceof Node\Scalar\String_) {
+                        $choiceDomain = $item->value->value;
+                    } elseif ($item->value instanceof Node\Expr\ConstFetch) {
+                        $constant = (string) $item->value->name;
+                        if ($constant === 'false') {
+                            $choiceDomain = false;
+                        }
+                    }
                 }
             }
 
@@ -171,7 +184,7 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
                             $newItem->value = $sitem->key;
                             $sitem = $newItem;
                         }
-                        $this->parseItem($sitem, $domain);
+                        $this->parseItem($sitem, $choiceDomain !== null ? $choiceDomain : $domain);
                     }
                 } elseif ('attr' === $item->key->value && is_array($item->value->items)) {
                     foreach ($item->value->items as $sitem) {
@@ -309,6 +322,11 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
             }
 
             throw new RuntimeException($message);
+        }
+
+        if ($domain === false) {
+            // Don't translate when domain is `false`
+            return;
         }
 
         $source = new FileSource((string) $this->file, $item->value->getLine());
