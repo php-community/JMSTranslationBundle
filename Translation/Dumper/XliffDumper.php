@@ -41,6 +41,7 @@ class XliffDumper implements DumperInterface
      * @var bool
      */
     private $addDate = true;
+    private $addSources = true;
 
     /**
      * @param $bool
@@ -48,6 +49,14 @@ class XliffDumper implements DumperInterface
     public function setAddDate($bool)
     {
         $this->addDate = (bool) $bool;
+    }
+
+    /**
+     * @param boolean $addSources
+     */
+    public function setAddSources($addSources)
+    {
+        $this->addSources = $addSources;
     }
 
     /**
@@ -121,24 +130,27 @@ class XliffDumper implements DumperInterface
                 $target->setAttribute('state', 'new');
             }
 
-            // As per the OASIS XLIFF 1.2 non-XLIFF elements must be at the end of the <trans-unit>
-            if ($sources = $message->getSources()) {
-                foreach ($sources as $source) {
-                    if ($source instanceof FileSource) {
-                        $unit->appendChild($refFile = $doc->createElement('jms:reference-file', $source->getPath()));
+            if ($this->addSources) {
+                // As per the OASIS XLIFF 1.2 non-XLIFF elements must be at the end of the <trans-unit>
+                if ($sources = $message->getSources()) {
+                    foreach ($sources as $source) {
+                        if ($source instanceof FileSource) {
+                            $refFile = $doc->createElement('jms:reference-file', $source->getPath());
+                            $unit->appendChild($refFile);
 
-                        if ($source->getLine()) {
-                            $refFile->setAttribute('line', $source->getLine());
+                            if ($source->getLine()) {
+                                $refFile->setAttribute('line', $source->getLine());
+                            }
+
+                            if ($source->getColumn()) {
+                                $refFile->setAttribute('column', $source->getColumn());
+                            }
+
+                            continue;
                         }
 
-                        if ($source->getColumn()) {
-                            $refFile->setAttribute('column', $source->getColumn());
-                        }
-
-                        continue;
+                        $unit->appendChild($doc->createElementNS('jms:reference', (string) $source));
                     }
-
-                    $unit->appendChild($doc->createElementNS('jms:reference', (string) $source));
                 }
             }
 
