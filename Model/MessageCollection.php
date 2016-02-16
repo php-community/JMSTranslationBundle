@@ -129,7 +129,7 @@ class MessageCollection
     }
 
     /**
-     * @return array
+     * @return Message[]
      */
     public function all()
     {

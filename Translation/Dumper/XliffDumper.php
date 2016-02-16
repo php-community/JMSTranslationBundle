@@ -52,7 +52,9 @@ class XliffDumper implements DumperInterface
     }
 
     /**
-     * @param \JMS\TranslationBundle\Model\MessageCatalogue $domain
+     * @param \JMS\TranslationBundle\Model\MessageCatalogue $catalogue
+     * @param string $domain
+     *
      * @return string
      */
     public function dump(MessageCatalogue $catalogue, $domain = 'messages')
