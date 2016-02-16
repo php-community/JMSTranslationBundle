@@ -21,19 +21,20 @@
         "twig/twig": "<1.12"
     },
     "require-dev": {
-        "symfony/expression-language": "~2.6|~3.0",
-        "symfony/twig-bundle": "*",
+        "jms/di-extra-bundle": ">=1.1",
+        "phpunit/phpunit": "^4.0",
+        "sensio/framework-extra-bundle": "*",
         "symfony/browser-kit": "*",
         "symfony/class-loader": "*",
         "symfony/css-selector": "*",
+        "symfony/expression-language": "~2.6|~3.0",
         "symfony/finder": "*",
         "symfony/form": "*",
-        "symfony/validator": "*",
-        "symfony/security": "*",
         "symfony/process": "*",
-        "symfony/yaml": "*",
-        "sensio/framework-extra-bundle": "*",
-        "jms/di-extra-bundle": ">=1.1"
+        "symfony/security": "*",
+        "symfony/twig-bundle": "*",
+        "symfony/validator": "*",
+        "symfony/yaml": "*"
     },
     "autoload": {
         "psr-0": { "JMS\\TranslationBundle": "" }
