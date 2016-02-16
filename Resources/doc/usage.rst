@@ -1,6 +1,19 @@
 Usage
 -----
 
+Config
+~~~~~~
+You can configure Xliff output with following options:
+
+.. code-block :: yml
+
+    # config.yml
+    jms_translation:
+        dumper:
+            add_date: true # Default. Adds date to xliff file header.
+            add_sources: true # Default. Adds sources for translations.
+
+
 Creating Translation Messages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 While not strictly necessary, this bundle strongly advocates the usage of
