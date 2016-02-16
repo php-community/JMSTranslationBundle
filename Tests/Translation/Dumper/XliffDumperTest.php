@@ -18,6 +18,7 @@
 
 namespace JMS\TranslationBundle\Tests\Translation\Dumper;
 
+use JMS\TranslationBundle\Model\FileSource;
 use JMS\TranslationBundle\Model\Message;
 
 use JMS\TranslationBundle\Model\MessageCatalogue;
@@ -52,6 +53,23 @@ class XliffDumperTest extends BaseDumperTest
 
 EOF;
         $this->assertEquals($expected, $dumper->dump($catalogue, 'messages'));
+    }
+
+    public function testDumpWithoutSourcesAdded()
+    {
+        $catalogue = new MessageCatalogue();
+        $catalogue->setLocale('en');
+
+        $message = new Message('foo');
+        $message->addSource(new FileSource('/a/b/c/foo/bar', 1, 2));
+        $message->addSource(new FileSource('bar/baz', 1, 2));
+        $catalogue->add($message);
+
+        $dumper = $this->getDumper();
+        $dumper->setAddSources(false);
+        $dumped = $dumper->dump($catalogue, 'messages');
+
+        $this->assertEquals($this->getOutput('simple'), $dumped);
     }
 
     protected function getDumper()
