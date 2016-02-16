@@ -60,7 +60,7 @@ class XliffDumper implements DumperInterface
 
     /**
      * @param MessageCatalogue $catalogue
-     * @param MessageCatalogue|string $domain
+     * @param string $domain
      * @return string
      */
     public function dump(MessageCatalogue $catalogue, $domain = 'messages')
