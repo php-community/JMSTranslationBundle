@@ -127,7 +127,7 @@ class FormExtractorTest extends \PHPUnit_Framework_TestCase
         $message->addSource(new FileSource($path, 69));
         $expected->add($message);
 
-        $message = new Message('bar', 'choice-domain');
+        $message = new Message(Kernel::VERSION_ID > 30000 ? 'foo' : 'bar', 'choice-domain');
         $message->addSource(new FileSource($path, 83));
         $expected->add($message);
 
