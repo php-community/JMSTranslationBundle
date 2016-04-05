@@ -31,6 +31,7 @@ use JMS\TranslationBundle\Model\SourceInterface;
 use JMS\TranslationBundle\Translation\Extractor\FileVisitorInterface;
 use PhpParser\Comment\Doc;
 use PhpParser\Node;
+use PhpParser\Node\Expr\ArrayItem;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use Psr\Log\LoggerInterface;
@@ -176,6 +177,10 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
                     }
 
                     foreach ($item->value->items as $sitem) {
+                        if ($sitem->key === null) {
+                            // For cases where key is not used as label (like, `'choices' => ['option1', 'option2']`
+                            continue;
+                        }
                         // If we have a choice as value that differ from the Symfony default strategy
                         // we should invert the key and the value
                         if (Kernel::VERSION_ID < 30000 && $choicesAsValues === true || Kernel::VERSION_ID >= 30000) {
@@ -262,7 +267,7 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
     }
 
     /**
-     * @param $item
+     * @param ArrayItem $item
      * @param null $domain
      */
     private function parseItem($item, $domain = null)

@@ -92,5 +92,14 @@ class MyFormType extends AbstractType
                 'translation_domain' => false,
             ))
         ;
+
+        $builder
+            ->add('choice_with_value_function', 'choice', [
+                'choices' => ['foo'],
+                'choice_value' => function () {
+                    return 'bar';
+                },
+                'choices_as_values' => true,
+            ]);
     }
 }
