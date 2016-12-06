@@ -78,6 +78,11 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
     private $defaultDomainMessages;
 
     /**
+     * @var Node
+     */
+    private $attrNode;
+
+    /**
      * FormExtractor constructor.
      * @param DocParser $docParser
      * @param FileSourceFactory $fileSourceFactory
@@ -114,6 +119,10 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
         }
 
         if ($node instanceof Node\Expr\Array_) {
+            if ($node === $this->attrNode) {
+                // Skip attr node since we already parsed that.
+                return;
+            }
             // first check if a translation_domain is set for this field
             $domain = $this->getDomain($node);
             $choiceDomain = $this->getChoiceDomain($node);
@@ -148,6 +157,9 @@ class FormExtractor implements FileVisitorInterface, LoggerAwareInterface, NodeV
                         $this->parseItem($item, $domain);
                         break;
                     case 'attr':
+                        if (isset($item->value)) {
+                            $this->attrNode = $item->value;
+                        }
                         if ($this->parseAttrNode($item, $domain)) {
                             continue 2;
                         }
