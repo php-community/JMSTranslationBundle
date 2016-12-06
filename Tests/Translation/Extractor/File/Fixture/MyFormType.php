@@ -93,5 +93,16 @@ class MyFormType extends AbstractType
                 'translation_domain' => false,
             ))
         ;
+
+        $builder->add('untranslateable_field_with_placeholder', 'text', array(
+            'label' => 'field.with.placeholder.no.translation.domain',
+            'attr' => array('placeholder' => /** @Desc("Field with a placeholder value") */ 'form.placeholder.text.skip'),
+            'translation_domain' => false,
+        ));
+
+        $builder->add('custom_domain_field_with_placeholder', 'text', array(
+            'attr' => array('placeholder' => 'form.custom_domain_field_with_placeholder.attr.placeholder'),
+            'translation_domain' => 'custom_domain_field_with_placeholder',
+        ));
     }
 }
